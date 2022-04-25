@@ -27,7 +27,7 @@ const getAllQuestions = (productId, page = 1, count = 5, cb) => {
     product_id: productId
   }
 
-  let questionsQuery = `SELECT id AS question_id, questions.body AS question_body, to_timestamp(date_written / 1000) AS question_date, asker_name, helpful AS question_helpfulness, reported
+  let questionsQuery = `SELECT id AS question_id, questions.body AS question_body, to_timestamp(date_written / 1000) AS question_date, asker_name, helpful AS question_helpfulness, CASE WHEN reported = 0 THEN 'false' END AS reported
     FROM questions
     WHERE product_id = $1
     AND reported = 0
