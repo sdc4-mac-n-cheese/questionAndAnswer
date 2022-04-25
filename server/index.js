@@ -1,6 +1,6 @@
 const express = require('express');
 const axios = require('axios');
-const { getAllQuestions, getAllAnswers, createQuestion, createAnswer } = require('../database/index.js');
+const { getAllQuestions, getAllAnswers, createQuestion, createAnswer, updateQuestionHelpful, updateQuestionReported, updateAnswerHelpful, updateAnswerReported } = require('../database/index.js');
 
 const app = express();
 
@@ -61,6 +61,61 @@ app.post('/qa/questions/:question_id/answers', (req, res) => {
     }
   })
 });
+
+app.put('/qa/questions/:question_id/helpful', (req, res) => {
+
+  const questionId = req.params.question_id;
+
+  updateQuestionHelpful(questionId, (err, response) => {
+    if (err) {
+      res.status(500).send(err);
+    } else {
+      // this isn't logging in postman, not sure why
+      res.status(204).send('helpful update successful');
+    }
+  });
+});
+
+app.put('/qa/questions/:question_id/report', (req, res) => {
+
+  const questionId = req.params.question_id;
+
+  updateQuestionReported(questionId, (err, response) => {
+    if (err) {
+      res.status(500).send(err);
+    } else {
+      res.status(204).send(response);
+    }
+  });
+});
+
+app.put('/qa/answers/:answer_id/helpful', (req, res) => {
+
+  const answerId = req.params.answer_id;
+
+  updateAnswerHelpful(answerId, (err, response) => {
+    if (err) {
+      res.status(500).send(err);
+    } else {
+      res.status(204).send(response);
+    }
+  });
+});
+
+app.put('/qa/answers/:answer_id/report', (req, res) => {
+
+  const answerId = req.params.answer_id;
+
+  updateAnswerReported(answerId, (err, response) => {
+    if (err) {
+      res.status(500).send(err);
+    } else {
+      res.status(204).send(response);
+    }
+  });
+})
+
+
 
 app.listen(PORT, () => {
   console.log(`listening on port ${PORT}`);

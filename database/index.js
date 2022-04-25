@@ -20,6 +20,8 @@ const pool = new Pool({
 const getAllQuestions = (productId, page = 1, count = 5, cb) => {
   const offset = (page - 1) * count;
 
+  // need to research more on pooling and connection
+  console.log('getAllQuestions is triggering');
   pool.connect();
 
   const data = {
@@ -192,9 +194,77 @@ const createAnswer = (questionId, body, name, email, photos, cb) => {
   });
 }
 
+const updateQuestionHelpful = (questionId, cb) => {
+  pool.connect();
+
+  let updateQuery = `UPDATE questions SET helpful = helpful + 1
+    WHERE id = $1`;
+
+  pool.query(updateQuery, [questionId], (err, res) => {
+    if (err) {
+      console.log(err.stack);
+      cb(err);
+    } else {
+      cb(null, res);
+    }
+  });
+}
+
+const updateQuestionReported = (questionId, cb) => {
+  pool.connect();
+
+  let updateQuery = `UPDATE questions SET reported = 1
+    WHERE id = $1`;
+
+  pool.query(updateQuery, [questionId], (err, res) => {
+    if (err) {
+      console.log(err.stack);
+      cb(err);
+    } else {
+      cb(null, res);
+    }
+  });
+}
+
+const updateAnswerHelpful = (answerId, cb) => {
+  pool.connect();
+
+  let updateQuery = `UPDATE answers SET helpful = helpful + 1
+    WHERE id = $1`;
+
+  pool.query(updateQuery, [answerId], (err, res) => {
+    if (err) {
+      console.log(err.stack);
+      cb(err);
+    } else {
+      cb(null, res);
+    }
+  })
+}
+
+const updateAnswerReported = (answerId, cb) => {
+  pool.connect();
+
+  let updateQuery = `UPDATE answers SET reported = 1
+    WHERE id = $1`;
+
+  pool.query(updateQuery, [answerId], (err, res) => {
+    if (err) {
+      console.log(err.stack);
+      cb(err);
+    } else {
+      cb(null, res);
+    }
+  });
+}
+
 module.exports = {
   getAllQuestions: getAllQuestions,
   getAllAnswers: getAllAnswers,
   createQuestion: createQuestion,
   createAnswer: createAnswer,
+  updateQuestionHelpful: updateQuestionHelpful,
+  updateQuestionReported: updateQuestionReported,
+  updateAnswerHelpful: updateAnswerHelpful,
+  updateAnswerReported: updateAnswerReported,
 }
