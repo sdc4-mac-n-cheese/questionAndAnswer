@@ -21,7 +21,6 @@ const getAllQuestions = (productId, page = 1, count = 5, cb) => {
   const offset = (page - 1) * count;
 
   // need to research more on pooling and connection
-  console.log('getAllQuestions is triggering');
   pool.connect();
 
   const data = {
@@ -30,11 +29,11 @@ const getAllQuestions = (productId, page = 1, count = 5, cb) => {
 
   let questionsQuery = `SELECT id AS question_id, questions.body AS question_body, to_timestamp(date_written / 1000) AS question_date, asker_name, helpful AS question_helpfulness, reported
     FROM questions
-    WHERE product_id = ${productId}
+    WHERE product_id = $1
     AND reported = 0
-    LIMIT ${count} OFFSET ${offset}`
+    LIMIT $2 OFFSET $3`
 
-  pool.query(questionsQuery, (err, res) => {
+  pool.query(questionsQuery, [productId, count, offset], (err, res) => {
     if (err) {
       cb(err);
     } else {
@@ -44,12 +43,12 @@ const getAllQuestions = (productId, page = 1, count = 5, cb) => {
         const question = questions[i];
         const questionId = questions[i].question_id;
 
-        let answersQuery = `SELECT id AS id, body AS body, to_timestamp(date_written / 1000) AS date, answerer_name, helpful AS helpfulness
+        let answersQuery = `SELECT id, body, to_timestamp(date_written / 1000) AS date, answerer_name, helpful AS helpfulness
           FROM answers
-          WHERE question_id = ${questionId}
+          WHERE question_id = $1
           AND reported = 0`
 
-        pool.query(answersQuery, (err, res) => {
+        pool.query(answersQuery, [questionId], (err, res) => {
           if (err) {
             cb(err);
           } else {
@@ -63,9 +62,9 @@ const getAllQuestions = (productId, page = 1, count = 5, cb) => {
               if (answer.id) {
                 question.answers[answerId] = answer;
 
-                let photosQuery = `SELECT url FROM photos WHERE answer_id = ${answerId}`;
+                let photosQuery = `SELECT url FROM photos WHERE answer_id = $1`;
 
-                pool.query(photosQuery, (err, res) => {
+                pool.query(photosQuery, [answerId], (err, res) => {
                   if (err) {
                     cb(err);
                   } else {
@@ -103,13 +102,13 @@ const getAllAnswers = (questionId, page = 1, count = 5, cb) => {
     count: count,
   }
 
-  let answersQuery = `SELECT id AS answer_id, body AS body, to_timestamp(date_written / 1000) AS date, answerer_name, helpful AS helpfulness
+  let answersQuery = `SELECT id AS answer_id, body, to_timestamp(date_written / 1000) AS date, answerer_name, helpful AS helpfulness
     FROM answers
-    WHERE question_id = ${questionId}
+    WHERE question_id = $1
     AND reported = 0
-    LIMIT ${count} OFFSET ${offset}`;
+    LIMIT $2 OFFSET $3`;
 
-  pool.query(answersQuery, (err, res) => {
+  pool.query(answersQuery, [productId, count, offset], (err, res) => {
     if (err) {
       cb(err);
     } else {
@@ -149,9 +148,9 @@ const createQuestion = (productId, body, name, email, cb) => {
   pool.connect();
 
   let date = Date.now();
-  let insertQuery = `INSERT INTO questions (product_id, body, date_written, asker_name,asker_email, reported, helpful) VALUES (${productId}, '${body}', ${date}, '${name}', '${email}', 0, 0)`;
+  let insertQuery = `INSERT INTO questions (product_id, body, date_written, asker_name,asker_email, reported, helpful) VALUES ($1, $2, $3, $4, $5, 0, 0)`;
 
-  pool.query(insertQuery, (err, res) => {
+  pool.query(insertQuery, [productId, body, date, name, email], (err, res) => {
     if (err) {
       console.log(err.stack);
       cb(err);
@@ -165,11 +164,11 @@ const createAnswer = (questionId, body, name, email, photos, cb) => {
   pool.connect();
 
   let date = Date.now();
-  let insertQuery = `INSERT INTO answers (question_id, body, date_written, answerer_name, answerer_email, reported, helpful) VALUES (${questionId}, '${body}', ${date}, '${name}', '${email}', 0, 0) RETURNING id`;
+  let insertQuery = `INSERT INTO answers (question_id, body, date_written, answerer_name, answerer_email, reported, helpful) VALUES ($1, $2, $3, $4, $5, 0, 0) RETURNING id`;
 
   console.log('insertQuery:::', insertQuery);
 
-  pool.query(insertQuery, (err, res) => {
+  pool.query(insertQuery, [questionId, body, date, name, email], (err, res) => {
     if (err) {
       console.log(err.stack);
       cb(err);
@@ -177,9 +176,9 @@ const createAnswer = (questionId, body, name, email, photos, cb) => {
       let insertId = res.rows[0].id;
       for (let i = 0; i < photos.length; i++) {
         let currentUrl = photos[i];
-        let insertQuery = `INSERT INTO photos (answer_id, url) VALUES (${insertId}, '${currentUrl}')`;
+        let insertQuery = `INSERT INTO photos (answer_id, url) VALUES ($1, $2)`;
 
-        pool.query(insertQuery, (err, res) => {
+        pool.query(insertQuery, [insertId, currentUrl], (err, res) => {
           if (err) {
             console.log(err.stack);
             cb(err);
