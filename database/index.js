@@ -141,10 +141,60 @@ const getAllAnswers = (questionId, page = 1, count = 5, cb) => {
       }
     }
   });
+}
 
+const createQuestion = (productId, body, name, email, cb) => {
+  pool.connect();
+
+  let date = Date.now();
+  let insertQuery = `INSERT INTO questions (product_id, body, date_written, asker_name,asker_email, reported, helpful) VALUES (${productId}, '${body}', ${date}, '${name}', '${email}', 0, 0)`;
+
+  pool.query(insertQuery, (err, res) => {
+    if (err) {
+      console.log(err.stack);
+      cb(err);
+    } else {
+      cb(null, res);
+    }
+  });
+}
+
+const createAnswer = (questionId, body, name, email, photos, cb) => {
+  pool.connect();
+
+  let date = Date.now();
+  let insertQuery = `INSERT INTO answers (question_id, body, date_written, answerer_name, answerer_email, reported, helpful) VALUES (${questionId}, '${body}', ${date}, '${name}', '${email}', 0, 0) RETURNING id`;
+
+  console.log('insertQuery:::', insertQuery);
+
+  pool.query(insertQuery, (err, res) => {
+    if (err) {
+      console.log(err.stack);
+      cb(err);
+    } else {
+      let insertId = res.rows[0].id;
+      for (let i = 0; i < photos.length; i++) {
+        let currentUrl = photos[i];
+        let insertQuery = `INSERT INTO photos (answer_id, url) VALUES (${insertId}, '${currentUrl}')`;
+
+        pool.query(insertQuery, (err, res) => {
+          if (err) {
+            console.log(err.stack);
+            cb(err);
+          } else {
+            if(i === photos.length - 1) {
+              cb(null, res);
+            }
+          }
+        });
+      }
+    }
+  });
 }
 
 module.exports = {
   getAllQuestions: getAllQuestions,
   getAllAnswers: getAllAnswers,
+  createQuestion: createQuestion,
+  createAnswer: createAnswer,
 }
