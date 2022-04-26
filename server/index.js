@@ -1,6 +1,6 @@
 const express = require('express');
 const axios = require('axios');
-const { getAllQuestions2, getAllAnswers2, createQuestion, createAnswer, updateQuestionHelpful, updateQuestionReported, updateAnswerHelpful, updateAnswerReported } = require('../database/index.js');
+const { getAllQuestions, getAllAnswers, createQuestion, createAnswer, updateQuestionHelpful, updateQuestionReported, updateAnswerHelpful, updateAnswerReported } = require('../models/index.js');
 
 const app = express();
 
@@ -14,7 +14,7 @@ app.get('/qa/questions', (req, res) => {
   const { page, count } = req.query;
 
   console.log('productId:::', productId);
-  getAllQuestions2(productId, page, count, (err, results) => {
+  getAllQuestions(productId, page, count, (err, results) => {
     if (err) {
       console.log(err);
       res.status(500).send(err);
@@ -29,7 +29,7 @@ app.get('/qa/questions/:question_id/answers', (req, res) => {
   const questionId = req.params.question_id;
   const { page, count } = req.query;
 
-  getAllAnswers2(questionId, page, count, (err, results) => {
+  getAllAnswers(questionId, page, count, (err, results) => {
     if (err) {
       res.status(500).send(err);
     } else (
@@ -120,8 +120,6 @@ app.put('/qa/answers/:answer_id/report', (req, res) => {
     }
   });
 })
-
-
 
 app.listen(PORT, () => {
   console.log(`listening on port ${PORT}`);
