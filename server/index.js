@@ -1,6 +1,6 @@
 const express = require('express');
 const axios = require('axios');
-const { getAllQuestions, getAllAnswers, createQuestion, createAnswer, updateQuestionHelpful, updateQuestionReported, updateAnswerHelpful, updateAnswerReported } = require('../database/index.js');
+const { getAllQuestions2, getAllAnswers, createQuestion, createAnswer, updateQuestionHelpful, updateQuestionReported, updateAnswerHelpful, updateAnswerReported } = require('../database/index.js');
 
 const app = express();
 
@@ -14,7 +14,7 @@ app.get('/qa/questions', (req, res) => {
   const { page, count } = req.query;
 
   console.log('productId:::', productId);
-  getAllQuestions(productId, page, count, (err, results) => {
+  getAllQuestions2(productId, page, count, (err, results) => {
     if (err) {
       console.log(err);
       res.status(500).send(err);
