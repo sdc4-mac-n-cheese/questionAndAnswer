@@ -244,13 +244,14 @@ const getAllQuestions2 = async (productId, page = 1, count = 5, cb) => {
 //   });
 // }
 
-const getAllAnswers = (questionId, page = 1, count = 5, cb) => {
+const getAllAnswers2 = async (questionId, page = 1, count = 5, cb) => {
   const offset = (page - 1) * count;
 
   const data = {
     question: questionId,
     page: page,
     count: count,
+    results: [],
   }
 
   let answersQuery = `SELECT id AS answer_id, body, to_timestamp(date_written / 1000) AS date, answerer_name, helpful AS helpfulness
@@ -259,40 +260,98 @@ const getAllAnswers = (questionId, page = 1, count = 5, cb) => {
     AND reported = 0
     LIMIT $2 OFFSET $3`;
 
-  pool.query(answersQuery, [questionId, count, offset], (err, res) => {
-    if (err) {
-      cb(err);
-    } else {
+  await pool.query(answersQuery, [questionId, count, offset])
+    .then(async (res) => {
       const answers = res.rows;
 
-      for (let j = 0; j < answers.length; j++) {
-        const answer = answers[j];
-        const answerId = answers[j]['answer_id'];
+      if (answers.length !== 0) {
+        for (let i = 0; i < answers.length; i++) {
+          const answer = answers[i];
+          const answerId = answers[i]['answer_id'];
 
-        let photosQuery = `SELECT url FROM photos WHERE answer_id = ${answerId}`;
+          let photosQuery = `SELECT url FROM photos WHERE answer_id = $1`;
 
-        pool.query(photosQuery, (err, res) => {
-          if (err) {
-            cb(err);
-          } else {
-            const photos = res.rows;
+          await pool.query(photosQuery, [answerId])
+            .then((res) => {
+              const photos = res.rows;
 
-            answer.photos = photos.map(photo => photo.url);
+              answer.photos = photos.map(photo => photo.url);
 
-            if (answer.photos === undefined) {
-              answer.photos = [];
-            }
+              if (answer.photos === undefined) {
+                answer.photos = [];
+              }
 
-            if (j === answers.length - 1) {
-              data.results = answers;
-              cb(null, data);
-            }
-          }
-        });
+              if (i === answers.length - 1) {
+                data.result = answers;
+                cb(null, data);
+              }
+
+            })
+            .catch((err) => {
+              console.log(err.stack);
+              cb(err);
+            })
+        }
+      } else {
+        cb(null, data);
       }
-    }
-  });
+    })
+    .catch((err) => {
+      console.log(err.stack);
+      cb(err);
+    })
 }
+
+
+// const getAllAnswers = async (questionId, page = 1, count = 5, cb) => {
+//   const offset = (page - 1) * count;
+
+//   const data = {
+//     question: questionId,
+//     page: page,
+//     count: count,
+//   }
+
+//   let answersQuery = `SELECT id AS answer_id, body, to_timestamp(date_written / 1000) AS date, answerer_name, helpful AS helpfulness
+//     FROM answers
+//     WHERE question_id = $1
+//     AND reported = 0
+//     LIMIT $2 OFFSET $3`;
+
+//   await pool.query(answersQuery, [questionId, count, offset], (err, res) => {
+//     if (err) {
+//       cb(err);
+//     } else {
+//       const answers = res.rows;
+
+//       for (let j = 0; j < answers.length; j++) {
+//         const answer = answers[j];
+//         const answerId = answers[j]['answer_id'];
+
+//         let photosQuery = `SELECT url FROM photos WHERE answer_id = ${answerId}`;
+
+//         pool.query(photosQuery, (err, res) => {
+//           if (err) {
+//             cb(err);
+//           } else {
+//             const photos = res.rows;
+
+//             answer.photos = photos.map(photo => photo.url);
+
+//             if (answer.photos === undefined) {
+//               answer.photos = [];
+//             }
+
+//             if (j === answers.length - 1) {
+//               data.results = answers;
+//               cb(null, data);
+//             }
+//           }
+//         });
+//       }
+//     }
+//   });
+// }
 
 const createQuestion = (productId, body, name, email, cb) => {
 
@@ -403,7 +462,7 @@ const updateAnswerReported = (answerId, cb) => {
 
 module.exports = {
   getAllQuestions2: getAllQuestions2,
-  getAllAnswers: getAllAnswers,
+  getAllAnswers2: getAllAnswers2,
   createQuestion: createQuestion,
   createAnswer: createAnswer,
   updateQuestionHelpful: updateQuestionHelpful,
