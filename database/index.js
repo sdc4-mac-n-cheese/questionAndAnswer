@@ -54,20 +54,15 @@ const getAllQuestions3 = (productId, page, count, cb) => {
 // getAllQuestions3();
 
 
-const getAllQuestions2 = (productId, page, count, cb) => {
+const getAllQuestions2 = async (productId, page, count, cb) => {
   page = page || 1;
   count = count || 5;
 
   const offset = (page - 1) * count;
 
-  console.log('page::', page);
-  console.log('count::', count);
-
   const data = {
     productId: productId,
   }
-
-  console.log('offset::', offset);
 
   let questionsQuery = `SELECT id AS question_id, questions.body AS question_body, to_timestamp(date_written / 1000) AS question_date, asker_name, helpful AS question_helpfulness, CASE WHEN reported = 0 THEN 'false' END AS reported
       FROM questions
@@ -75,61 +70,83 @@ const getAllQuestions2 = (productId, page, count, cb) => {
       AND reported = 0
       LIMIT $2 OFFSET $3`;
 
-  pool.query(questionsQuery, [productId, count, offset])
-    .then((res) => {
+  await pool.query(questionsQuery, [productId, count, offset])
+    .then(async (res) => {
+      console.log(':::get questions query executing:::');
+
       const questions = res.rows;
+      console.log('questions.length:::', questions.length);
 
       for (let i = 0; i < questions.length; i++) {
         const question = questions[i];
-        const questionId = questions[i]. question_id;
+        console.log('question:::', question);
+        const questionId = questions[i].question_id;
 
         let answersQuery = `SELECT id, body, to_timestamp(date_written / 1000) AS date, answerer_name, helpful AS helpfulness
             FROM answers
             WHERE question_id = $1
             AND reported = 0`;
 
-        pool.query(answersQuery, [questionId])
-        .then((res) => {
-          const answers = res.rows;
-          question.answers = {};
+        await pool.query(answersQuery, [questionId])
+          .then(async (res) => {
 
-          for (let j = 0; j < answers.length; j++) {
-            const answer = answers[j];
-            const answerId = answers[j].id;
+            const answers = res.rows;
+            question.answers = {};
 
-            console.log('answerId:::', answerId);
+            for (let j = 0; j < answers.length; j++) {
+              const answer = answers[j];
+              const answerId = answers[j].id;
 
-            question.answers[answerId] = answer;
+              console.log(':::get answers query executing:::');
+              console.log('answerId:::', answerId);
 
-            let photosQuery = `SELECT url FROM photos WHERE answer_id = $1`;
+              question.answers[answerId] = answer;
+              console.log('answers.length:::', answers.length);
 
-            pool.query(photosQuery, [answerId])
-              .then((res) => {
-                const photos = res.rows;
-                question.answers[answerId].photos = photos.map(photo => photo.url);
-                console.log(':::line 74:::');
+              if (answerId) {
 
-                // need to fix missing photos array
-                if (question.answers[answerId].photos === undefined) {
-                  question.answers[answerId].photos = [];
-                }
+                let photosQuery = `SELECT url FROM photos WHERE answer_id = $1`;
 
-                if (i === questions.length - 1 && j === answers.length - 1) {
-                  console.log(':::line 76:::');
+                await pool.query(photosQuery, [answerId])
+                  .then((res) => {
+
+                    console.log(':::get photos query executing:::');
+
+                    const photos = res.rows;
+                    question.answers[answerId].photos = photos.map(photo => photo.url);
+
+                    if (question.answers[answerId].photos === undefined) {
+                      question.answers[answerId].photos = [];
+                    }
+
+                    console.log('i:::', i);
+                    console.log('j:::', j);
+
+                    if (i === questions.length - 1 && j === answers.length - 1) {
+                      console.log(':::final callback block executing:::');
+                      data.results = questions;
+                      cb(null, data);
+                    }
+                  })
+                  .catch((err) => {
+                    console.log(err.stack);
+                    cb(err);
+                  });
+              } else {
+
+                if (i === questions.length - 1) {
+                  console.log(':::final callback block executing:::');
                   data.results = questions;
                   cb(null, data);
                 }
-              })
-              .catch((err) => {
-                console.log(err.stack);
-                cb(err);
-              });
-          }
-        })
-        .catch((err) => {
-          console.log(err.stack);
-          cb(err);
-        });
+
+              }
+            }
+          })
+          .catch((err) => {
+            console.log(err.stack);
+            cb(err);
+          });
       }
     })
     .catch((err) => {
@@ -138,8 +155,9 @@ const getAllQuestions2 = (productId, page, count, cb) => {
     })
 }
 
-const getAllQuestions = (productId, page = 1, count = 5, cb) => {
+const getAllQuestions = async (productId, page = 1, count = 5, cb) => {
   console.log(':::get all questions invoked:::');
+
   const offset = (page - 1) * count;
 
   const data = {
@@ -152,12 +170,14 @@ const getAllQuestions = (productId, page = 1, count = 5, cb) => {
       AND reported = 0
       LIMIT $2 OFFSET $3`
 
-  pool.query(questionsQuery, [productId, count, offset], (err, res) => {
+  await pool.query(questionsQuery, [productId, count, offset], async (err, res) => {
     if (err) {
       cb(err);
     } else {
       console.log(':::questionsQuery cb invoked:::');
       const questions = res.rows;
+
+      console.log('questions.length:::', questions.length);
 
       for (let i = 0; i < questions.length; i++) {
         const question = questions[i];
@@ -168,11 +188,13 @@ const getAllQuestions = (productId, page = 1, count = 5, cb) => {
             WHERE question_id = $1
             AND reported = 0`
 
-        pool.query(answersQuery, [questionId], (err, res) => {
+        await pool.query(answersQuery, [questionId], async (err, res) => {
           if (err) {
             cb(err);
           } else {
+
             console.log(':::answersQuery cb invoked:::');
+
             const answers = res.rows;
             question.answers = {};
 
@@ -183,29 +205,30 @@ const getAllQuestions = (productId, page = 1, count = 5, cb) => {
               if (answer.id) {
                 question.answers[answerId] = answer;
 
+                console.log('answers.length:::', answers.length);
+
                 let photosQuery = `SELECT url FROM photos WHERE answer_id = $1`;
 
-                pool.query(photosQuery, [answerId], (err, res) => {
+                await pool.query(photosQuery, [answerId], (err, res) => {
+
                   console.log(':::photosQuery cb invoked:::');
+
                   if (err) {
                     cb(err);
                   } else {
                     const photos = res.rows;
                     question.answers[answerId].photos = photos.map(photo => photo.url);
-                    console.log('photos:::', photos);
 
                     if (question.answers[answerId].photos === undefined) {
                       question.answers[answerId].photos = [];
                     }
 
                     console.log('i:::', i);
-                    console.log('questions.length:::', questions.length);
-
                     console.log('j:::', j);
-                    console.log('answers.length:::', answers.length);
 
                     if (i === questions.length - 1 && j === answers.length - 1) {
-                      console.log('data:::', data);
+                      console.log(':::final callback invoked:::');
+
                       data.results = questions;
                       cb(null, data);
                     }
@@ -235,7 +258,7 @@ const getAllAnswers = (questionId, page = 1, count = 5, cb) => {
     AND reported = 0
     LIMIT $2 OFFSET $3`;
 
-  pool.query(answersQuery, [productId, count, offset], (err, res) => {
+  pool.query(answersQuery, [questionId, count, offset], (err, res) => {
     if (err) {
       cb(err);
     } else {
@@ -262,7 +285,6 @@ const getAllAnswers = (questionId, page = 1, count = 5, cb) => {
             if (j === answers.length - 1) {
               data.results = answers;
               cb(null, data);
-              // client.end();
             }
           }
         });
@@ -272,7 +294,6 @@ const getAllAnswers = (questionId, page = 1, count = 5, cb) => {
 }
 
 const createQuestion = (productId, body, name, email, cb) => {
-  pool.connect();
 
   let date = Date.now();
   let insertQuery = `INSERT INTO questions (product_id, body, date_written, asker_name,asker_email, reported, helpful) VALUES ($1, $2, $3, $4, $5, 0, 0)`;
@@ -288,7 +309,6 @@ const createQuestion = (productId, body, name, email, cb) => {
 }
 
 const createAnswer = (questionId, body, name, email, photos, cb) => {
-  pool.connect();
 
   let date = Date.now();
   let insertQuery = `INSERT INTO answers (question_id, body, date_written, answerer_name, answerer_email, reported, helpful) VALUES ($1, $2, $3, $4, $5, 0, 0) RETURNING id`;
@@ -321,7 +341,6 @@ const createAnswer = (questionId, body, name, email, photos, cb) => {
 }
 
 const updateQuestionHelpful = (questionId, cb) => {
-  pool.connect();
 
   let updateQuery = `UPDATE questions SET helpful = helpful + 1
     WHERE id = $1`;
@@ -337,7 +356,6 @@ const updateQuestionHelpful = (questionId, cb) => {
 }
 
 const updateQuestionReported = (questionId, cb) => {
-  pool.connect();
 
   let updateQuery = `UPDATE questions SET reported = 1
     WHERE id = $1`;
@@ -353,7 +371,6 @@ const updateQuestionReported = (questionId, cb) => {
 }
 
 const updateAnswerHelpful = (answerId, cb) => {
-  pool.connect();
 
   let updateQuery = `UPDATE answers SET helpful = helpful + 1
     WHERE id = $1`;
@@ -369,7 +386,6 @@ const updateAnswerHelpful = (answerId, cb) => {
 }
 
 const updateAnswerReported = (answerId, cb) => {
-  pool.connect();
 
   let updateQuery = `UPDATE answers SET reported = 1
     WHERE id = $1`;
