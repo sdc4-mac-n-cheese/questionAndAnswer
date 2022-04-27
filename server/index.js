@@ -77,7 +77,7 @@ app.put('/qa/questions/:question_id/helpful', (req, res) => {
       res.status(500).send(err);
     } else {
       // this isn't logging in postman, not sure why
-      res.status(204).send('helpful update successful');
+      res.status(204).send(response);
     }
   });
 });

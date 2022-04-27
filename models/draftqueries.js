@@ -197,3 +197,35 @@ const getAllQuestions3 = (productId, page, count, cb) => {
 //     }
 //   });
 // }
+
+
+// const createAnswer = (questionId, body, name, email, photos, cb) => {
+
+//   let date = Date.now();
+//   let insertQuery = `INSERT INTO answers (question_id, body, date_written, answerer_name, answerer_email, reported, helpful) VALUES ($1, $2, $3, $4, $5, 0, 0) RETURNING id`;
+
+//   pool.query(insertQuery, [questionId, body, date, name, email], (err, res) => {
+//     if (err) {
+//       console.log(err.stack);
+//       cb(err);
+//     } else {
+//       let insertId = res.rows[0].id;
+
+//       for (let i = 0; i < photos.length; i++) {
+//         let currentUrl = photos[i];
+//         let insertQuery = `INSERT INTO photos (answer_id, url) VALUES ($1, $2)`;
+
+//         pool.query(insertQuery, [insertId, currentUrl], (err, res) => {
+//           if (err) {
+//             console.log(err.stack);
+//             cb(err);
+//           } else {
+//             if (i === photos.length - 1) {
+//               cb(null, res);
+//             }
+//           }
+//         });
+//       }
+//     }
+//   });
+// }

@@ -126,7 +126,7 @@ const getAllAnswers = async (questionId, page = 1, count = 5, cb) => {
               }
 
               if (i === answers.length - 1) {
-                data.result = answers;
+                data.results = answers;
                 cb(null, data);
               }
 
@@ -151,44 +151,43 @@ const createQuestion = (productId, body, name, email, cb) => {
   let date = Date.now();
   let insertQuery = `INSERT INTO questions (product_id, body, date_written, asker_name,asker_email, reported, helpful) VALUES ($1, $2, $3, $4, $5, 0, 0)`;
 
-  pool.query(insertQuery, [productId, body, date, name, email], (err, res) => {
-    if (err) {
+  pool.query(insertQuery, [productId, body, date, name, email])
+    .then((res) => {
+      cb(null, res);
+    })
+    .catch((err) => {
       console.log(err.stack);
       cb(err);
-    } else {
-      cb(null, res);
-    }
-  });
+    })
 }
 
 const createAnswer = (questionId, body, name, email, photos, cb) => {
-
   let date = Date.now();
   let insertQuery = `INSERT INTO answers (question_id, body, date_written, answerer_name, answerer_email, reported, helpful) VALUES ($1, $2, $3, $4, $5, 0, 0) RETURNING id`;
 
-  pool.query(insertQuery, [questionId, body, date, name, email], (err, res) => {
-    if (err) {
-      console.log(err.stack);
-      cb(err);
-    } else {
+  pool.query(insertQuery, [questionId, body, date, name, email])
+    .then(async (res) => {
       let insertId = res.rows[0].id;
       for (let i = 0; i < photos.length; i++) {
         let currentUrl = photos[i];
         let insertQuery = `INSERT INTO photos (answer_id, url) VALUES ($1, $2)`;
 
-        pool.query(insertQuery, [insertId, currentUrl], (err, res) => {
-          if (err) {
-            console.log(err.stack);
-            cb(err);
-          } else {
+        await pool.query(insertQuery, [insertId, currentUrl])
+          .then((res) => {
             if (i === photos.length - 1) {
               cb(null, res);
             }
-          }
-        });
+          })
+          .catch((err) => {
+            console.log(err.stack);
+            cb(err);
+          });
       }
-    }
-  });
+    })
+    .catch((err) => {
+      console.log(err.stack);
+      cb(err);
+    })
 }
 
 const updateQuestionHelpful = (questionId, cb) => {
