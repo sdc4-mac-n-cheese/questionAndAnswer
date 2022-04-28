@@ -20,6 +20,7 @@ pool.connect()
   .then((res) => console.log('im in'))
   .catch(err => console.log(err)); 
 
+
 module.exports = {
   pool: pool,
 }
