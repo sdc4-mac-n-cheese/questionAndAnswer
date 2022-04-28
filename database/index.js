@@ -1,4 +1,3 @@
-require('dotenv').config();
 const { Client, Pool } = require('pg');
 
 // const client = new Client({
@@ -9,6 +8,7 @@ const { Client, Pool } = require('pg');
 //   port: process.env.PORT,
 // });
 
+
 const pool = new Pool({
   user: 'ubuntu',
   host: '54.183.178.132',
@@ -18,7 +18,8 @@ const pool = new Pool({
 
 pool.connect()
   .then((res) => console.log('im in'))
-  .catch(err => console.log(err));
+  .catch(err => console.log(err)); 
+
 
 module.exports = {
   pool: pool,
