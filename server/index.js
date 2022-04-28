@@ -119,7 +119,11 @@ app.put('/qa/answers/:answer_id/report', (req, res) => {
       res.status(204).send(response);
     }
   });
-})
+});
+
+app.get('/loaderio-3e42668b2b7d992e32af2511e8ff3e9f', (req, res) => {
+  res.send('loaderio-3e42668b2b7d992e32af2511e8ff3e9f');
+});
 
 app.listen(PORT, () => {
   console.log(`listening on port ${PORT}`);
