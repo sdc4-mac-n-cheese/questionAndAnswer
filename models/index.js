@@ -149,7 +149,7 @@ const getAllAnswers = async (questionId, page = 1, count = 5, cb) => {
 const createQuestion = (productId, body, name, email, cb) => {
 
   let date = Date.now();
-  let insertQuery = `INSERT INTO questions (product_id, body, date_written, asker_name,asker_email, reported, helpful) VALUES ($1, $2, $3, $4, $5, 0, 0)`;
+  let insertQuery = `INSERT INTO questions (product_id, body, date_written, asker_name, asker_email, reported, helpful) VALUES ($1, $2, $3, $4, $5, 0, 0)`;
 
   pool.query(insertQuery, [productId, body, date, name, email])
     .then((res) => {
