@@ -6,11 +6,37 @@ DROP TABLE IF EXISTS products CASCADE;
 DROP TABLE IF EXISTS questions CASCADE;
 DROP TABLE IF EXISTS answers CASCADE;
 DROP TABLE IF EXISTS photos CASCADE;
+DROP TABLE IF EXISTS questions_staging;
+DROP TABLE IF EXISTS answers_staging;
+DROP TABLE IF EXISTS photos_staging;
 
--- CREATE TABLE products (
---   id INT NOT NULL,
---   PRIMARY KEY(id)
--- );
+CREATE TABLE questions_staging (
+  id INT,
+  product_id INT,
+  body TEXT,
+  date_written BIGINT,
+  asker_name TEXT,
+  asker_email TEXT,
+  reported SMALLINT,
+  helpful INT
+);
+
+CREATE TABLE answers_staging (
+  id INT,
+  question_id INT,
+  body TEXT,
+  date_written BIGINT,
+  answerer_name TEXT,
+  answerer_email TEXT,
+  reported SMALLINT,
+  helpful INT
+);
+
+CREATE TABLE photos_staging (
+  id INT,
+  answer_id INT,
+  url TEXT
+);
 
 CREATE TABLE questions (
   id SERIAL NOT NULL,
@@ -22,7 +48,6 @@ CREATE TABLE questions (
   reported SMALLINT NOT NULL,
   helpful INTEGER NOT NULL,
   PRIMARY KEY(id)
-  -- FOREIGN KEY(product_id) REFERENCES products(id)
 );
 
 CREATE TABLE answers (
@@ -52,17 +77,29 @@ CREATE INDEX photos_answer_id ON photos(answer_id);
 CREATE INDEX questions_reported ON questions(reported);
 CREATE INDEX answers_reported ON answers(reported);
 
-COPY questions(id, product_id, body, date_written, asker_name, asker_email, reported, helpful)
+COPY questions_staging(id, product_id, body, date_written, asker_name, asker_email, reported, helpful)
 FROM '/home/ubuntu/questions.csv'
 DELIMITER ','
 CSV HEADER;
 
-COPY answers(id, question_id, body, date_written, answerer_name, answerer_email, reported, helpful)
+COPY answers_staging(id, question_id, body, date_written, answerer_name, answerer_email, reported, helpful)
 FROM '/home/ubuntu/answers.csv'
 DELIMITER ','
 CSV HEADER;
 
-COPY photos(id, answer_id, url)
+COPY photos_staging(id, answer_id, url)
 FROM '/home/ubuntu/answers_photos.csv'
 DELIMITER ','
 CSV HEADER;
+
+INSERT INTO questions (product_id, body, date_written, asker_name, asker_email, reported, helpful)
+  SELECT product_id, body, date_written, asker_name, asker_email, reported, helpful
+  FROM questions_staging;
+
+INSERT INTO answers (question_id, body, date_written, answerer_name, answerer_email, reported, helpful)
+  SELECT question_id, body, date_written, answerer_name, answerer_email, reported, helpful
+  FROM answers_staging;
+
+INSERT INTO photos (answer_id, url)
+  SELECT answer_id, url
+  FROM photos_staging;

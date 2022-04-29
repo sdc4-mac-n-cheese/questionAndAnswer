@@ -1,4 +1,4 @@
-/* ran these commands from the command line in my local database
+-- ran these commands from the command line in my local database
 
 COPY questions_staging(id, product_id, body, date_written, asker_name, asker_email, reported, helpful)
 FROM '/Users/charliebailey24/Downloads/questions.csv'
@@ -15,10 +15,10 @@ FROM '/Users/charliebailey24/Downloads/answers_photos.csv'
 DELIMITER ','
 CSV HEADER;
 
-INSERT INTO products (id)
-  SELECT DISTINCT product_id
-  FROM questions_staging
-  ORDER BY product_id;
+-- INSERT INTO products (id)
+--   SELECT DISTINCT product_id
+--   FROM questions_staging
+--   ORDER BY product_id;
 
 INSERT INTO questions (product_id, body, date_written, asker_name, asker_email, reported, helpful)
   SELECT product_id, body, date_written, asker_name, asker_email, reported, helpful
@@ -31,7 +31,7 @@ INSERT INTO answers (question_id, body, date_written, answerer_name, answerer_em
 INSERT INTO photos (answer_id, url)
   SELECT answer_id, url
   FROM photos_staging;
-*/
+
 
 --for ubuntu--
 COPY questions(id, product_id, body, date_written, asker_name, asker_email, reported, helpful)

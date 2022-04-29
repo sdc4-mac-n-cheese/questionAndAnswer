@@ -17,8 +17,12 @@ const pool = new Pool({
 });
 
 pool.connect()
-  .then((res) => console.log('im in'))
-  .catch(err => console.log(err)); 
+  .then(res => console.log('im in'))
+  .catch(err => console.log(err));
+
+// pool.connect()
+//   .then((res) => console.log('im in'))
+//   .catch(err => console.log(err));
 
 
 module.exports = {
