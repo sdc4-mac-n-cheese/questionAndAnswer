@@ -43,6 +43,7 @@ app.post('/qa/questions', (req, res) => {
   // should be type checking email address
   const { body, name, email } = req.body;
   const productId  = req.body.product_id;
+  console.log('productId:::', productId);
 
   createQuestion(productId, body, name, email, (err, response) => {
     if (err) {
