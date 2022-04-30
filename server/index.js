@@ -9,11 +9,9 @@ const PORT = 3071;
 app.use(express.json());
 
 app.get('/qa/questions', (req, res) => {
-  console.log(':::serving request for qa/questions:::');
   const productId = req.query.product_id;
   const { page, count } = req.query;
 
-  console.log('productId:::', productId);
   getAllQuestions(productId, page, count, (err, results) => {
     if (err) {
       console.log(err);
@@ -25,7 +23,6 @@ app.get('/qa/questions', (req, res) => {
 });
 
 app.get('/qa/questions/:question_id/answers', (req, res) => {
-  console.log(':::serving request for qa/question/answers:::');
   const questionId = req.params.question_id;
   const { page, count } = req.query;
 
@@ -39,11 +36,9 @@ app.get('/qa/questions/:question_id/answers', (req, res) => {
 });
 
 app.post('/qa/questions', (req, res) => {
-  console.log(':::serving post for qa/question:::');
   // should be type checking email address
   const { body, name, email } = req.body;
   const productId  = req.body.product_id;
-  console.log('productId:::', productId);
 
   createQuestion(productId, body, name, email, (err, response) => {
     if (err) {
@@ -55,7 +50,6 @@ app.post('/qa/questions', (req, res) => {
 });
 
 app.post('/qa/questions/:question_id/answers', (req, res) => {
-  console.log(':::serving post for qa/question/answers:::');
   // should be type checking email address
   const { body, name, email, photos } = req.body;
   const questionId = req.params.question_id;
@@ -70,7 +64,6 @@ app.post('/qa/questions/:question_id/answers', (req, res) => {
 });
 
 app.put('/qa/questions/:question_id/helpful', (req, res) => {
-  console.log(':::serving put for qa/question/helpful:::');
   const questionId = req.params.question_id;
 
   updateQuestionHelpful(questionId, (err, response) => {
@@ -84,7 +77,6 @@ app.put('/qa/questions/:question_id/helpful', (req, res) => {
 });
 
 app.put('/qa/questions/:question_id/report', (req, res) => {
-  console.log(':::serving put for qa/question/report:::');
   const questionId = req.params.question_id;
 
   updateQuestionReported(questionId, (err, response) => {
@@ -97,7 +89,6 @@ app.put('/qa/questions/:question_id/report', (req, res) => {
 });
 
 app.put('/qa/answers/:answer_id/helpful', (req, res) => {
-  console.log(':::serving put for qa/answers/helpful:::');
   const answerId = req.params.answer_id;
 
   updateAnswerHelpful(answerId, (err, response) => {
@@ -110,7 +101,6 @@ app.put('/qa/answers/:answer_id/helpful', (req, res) => {
 });
 
 app.put('/qa/answers/:answer_id/report', (req, res) => {
-  console.log(':::serving put for qa/answers/report:::');
   const answerId = req.params.answer_id;
 
   updateAnswerReported(answerId, (err, response) => {
