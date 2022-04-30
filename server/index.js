@@ -14,7 +14,6 @@ app.get('/qa/questions', (req, res) => {
 
   getAllQuestions(productId, page, count, (err, results) => {
     if (err) {
-      console.log(err);
       res.status(500).send(err);
     } else {
       res.send(results);
