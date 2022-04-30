@@ -62,7 +62,6 @@ const getAllQuestions = async (productId, page = 1, count = 5, cb) => {
                       }
                     })
                     .catch((err) => {
-                      console.log(err.stack);
                       cb(err);
                     });
                 }
@@ -74,7 +73,6 @@ const getAllQuestions = async (productId, page = 1, count = 5, cb) => {
               }
             })
             .catch((err) => {
-              console.log(err.stack);
               cb(err);
             });
         }
@@ -83,7 +81,6 @@ const getAllQuestions = async (productId, page = 1, count = 5, cb) => {
       }
     })
     .catch((err) => {
-      console.log(err.stack);
       cb(err);
     })
 }
@@ -132,7 +129,6 @@ const getAllAnswers = async (questionId, page = 1, count = 5, cb) => {
 
             })
             .catch((err) => {
-              console.log(err.stack);
               cb(err);
             })
         }
@@ -141,7 +137,6 @@ const getAllAnswers = async (questionId, page = 1, count = 5, cb) => {
       }
     })
     .catch((err) => {
-      console.log(err.stack);
       cb(err);
     })
 }
@@ -156,7 +151,6 @@ const createQuestion = (productId, body, name, email, cb) => {
       cb(null, res);
     })
     .catch((err) => {
-      console.log(err.stack);
       cb(err);
     })
 }
@@ -179,13 +173,11 @@ const createAnswer = (questionId, body, name, email, photos, cb) => {
             }
           })
           .catch((err) => {
-            console.log(err.stack);
             cb(err);
           });
       }
     })
     .catch((err) => {
-      console.log(err.stack);
       cb(err);
     })
 }
@@ -197,7 +189,6 @@ const updateQuestionHelpful = (questionId, cb) => {
 
   pool.query(updateQuery, [questionId], (err, res) => {
     if (err) {
-      console.log(err.stack);
       cb(err);
     } else {
       cb(null, res);
@@ -212,7 +203,6 @@ const updateQuestionReported = (questionId, cb) => {
 
   pool.query(updateQuery, [questionId], (err, res) => {
     if (err) {
-      console.log(err.stack);
       cb(err);
     } else {
       cb(null, res);
@@ -227,7 +217,6 @@ const updateAnswerHelpful = (answerId, cb) => {
 
   pool.query(updateQuery, [answerId], (err, res) => {
     if (err) {
-      console.log(err.stack);
       cb(err);
     } else {
       cb(null, res);
@@ -242,7 +231,6 @@ const updateAnswerReported = (answerId, cb) => {
 
   pool.query(updateQuery, [answerId], (err, res) => {
     if (err) {
-      console.log(err.stack);
       cb(err);
     } else {
       cb(null, res);
